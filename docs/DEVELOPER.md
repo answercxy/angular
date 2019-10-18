@@ -26,7 +26,7 @@ following products on your development machine:
 
 * [Yarn](https://yarnpkg.com) (version specified in the engines field of [`package.json`](../package.json)) which is used to install dependencies.
 
-* [Java Development Kit](http://www.oracle.com/technetwork/es/java/javase/downloads/index.html) which is used
+* [Java Development Kit](https://www.oracle.com/technetwork/java/javase/downloads/index.html) which is used
   to execute the selenium standalone server for e2e testing.
 
 ## Getting the Sources
@@ -97,8 +97,8 @@ A better way is to set up your IDE to format the changed file on each file save.
 
 ### VS Code
 1. Install [Clang-Format](https://marketplace.visualstudio.com/items?itemName=xaver.clang-format) extension for VS Code.
-
-It will automatically pick up the settings from Angular's [settings.json](../.vscode/settings.json).
+2. It will automatically pick up the settings from `.vscode/settings.json`.
+If you haven't already, create a `settings.json` file by following the instructions [here](../.vscode/README.md).
 
 ### WebStorm / IntelliJ
 1. Install the [ClangFormatIJ](https://plugins.jetbrains.com/plugin/8396-clangformatij) plugin

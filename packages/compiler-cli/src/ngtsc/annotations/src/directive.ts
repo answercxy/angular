@@ -100,7 +100,7 @@ export class DirectiveDecoratorHandler implements
     }
     return [
       factoryRes, {
-        name: 'ngDirectiveDef',
+        name: 'ɵdir',
         initializer: res.expression,
         statements: [],
         type: res.type,
@@ -271,7 +271,7 @@ export function extractQueryMetadata(
   } else if (typeof arg === 'string') {
     predicate = [arg];
   } else if (isStringArrayOrDie(arg, '@' + name)) {
-    predicate = arg as string[];
+    predicate = arg;
   } else {
     throw new FatalDiagnosticError(
         ErrorCode.VALUE_HAS_WRONG_TYPE, node, `@${name} predicate cannot be interpreted`);

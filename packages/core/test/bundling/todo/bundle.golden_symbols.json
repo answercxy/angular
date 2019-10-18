@@ -3,9 +3,6 @@
     "name": "ACTIVE_INDEX"
   },
   {
-    "name": "ANIMATION_PROP_PREFIX"
-  },
-  {
     "name": "BINDING_INDEX"
   },
   {
@@ -126,10 +123,10 @@
     "name": "NEXT"
   },
   {
-    "name": "NG_COMPONENT_DEF"
+    "name": "NG_COMP_DEF"
   },
   {
-    "name": "NG_DIRECTIVE_DEF"
+    "name": "NG_DIR_DEF"
   },
   {
     "name": "NG_ELEMENT_ID"
@@ -142,6 +139,9 @@
   },
   {
     "name": "NG_PIPE_DEF"
+  },
+  {
+    "name": "NG_PROV_DEF"
   },
   {
     "name": "NG_TEMPLATE_SELECTOR"
@@ -324,76 +324,10 @@
     "name": "_c1"
   },
   {
-    "name": "_c10"
-  },
-  {
-    "name": "_c11"
-  },
-  {
-    "name": "_c12"
-  },
-  {
-    "name": "_c13"
-  },
-  {
-    "name": "_c14"
-  },
-  {
-    "name": "_c15"
-  },
-  {
-    "name": "_c16"
-  },
-  {
-    "name": "_c17"
-  },
-  {
-    "name": "_c18"
-  },
-  {
-    "name": "_c19"
-  },
-  {
-    "name": "_c2"
-  },
-  {
-    "name": "_c20"
-  },
-  {
-    "name": "_c21"
-  },
-  {
-    "name": "_c3"
-  },
-  {
-    "name": "_c4"
-  },
-  {
-    "name": "_c5"
-  },
-  {
-    "name": "_c6"
-  },
-  {
-    "name": "_c7"
-  },
-  {
-    "name": "_c8"
-  },
-  {
-    "name": "_c9"
-  },
-  {
     "name": "_currentInjector"
   },
   {
-    "name": "_currentNamespace"
-  },
-  {
     "name": "_devMode"
-  },
-  {
-    "name": "_elementExitFn"
   },
   {
     "name": "_global"
@@ -402,16 +336,10 @@
     "name": "_renderCompCount"
   },
   {
-    "name": "_selectedIndex"
-  },
-  {
     "name": "_state"
   },
   {
     "name": "_symbolIterator"
-  },
-  {
-    "name": "activeDirectiveId"
   },
   {
     "name": "addBindingIntoContext"
@@ -507,9 +435,6 @@
     "name": "checkNoChangesInternal"
   },
   {
-    "name": "checkNoChangesMode"
-  },
-  {
     "name": "cleanUpView"
   },
   {
@@ -520,9 +445,6 @@
   },
   {
     "name": "containerInternal"
-  },
-  {
-    "name": "contextLView"
   },
   {
     "name": "createContainerRef"
@@ -639,6 +561,9 @@
     "name": "extractPipeDef"
   },
   {
+    "name": "findAndApplyMapValue"
+  },
+  {
     "name": "findAttrIndexInNode"
   },
   {
@@ -649,9 +574,6 @@
   },
   {
     "name": "findExistingListener"
-  },
-  {
-    "name": "findInitialStylingValue"
   },
   {
     "name": "findViaComponent"
@@ -960,6 +882,9 @@
     "name": "instantiateRootComponent"
   },
   {
+    "name": "instructionState"
+  },
+  {
     "name": "interpolation1"
   },
   {
@@ -1218,6 +1143,9 @@
     "name": "resetComponentState"
   },
   {
+    "name": "resetCurrentStyleSanitizer"
+  },
+  {
     "name": "resetPreOrderHookFlags"
   },
   {
@@ -1240,6 +1168,9 @@
   },
   {
     "name": "searchTokensOnInjector"
+  },
+  {
+    "name": "selectClassBasedInputName"
   },
   {
     "name": "selectIndexInternal"

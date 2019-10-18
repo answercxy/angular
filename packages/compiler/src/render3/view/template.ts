@@ -165,8 +165,8 @@ export class TemplateDefinitionBuilder implements t.Visitor<void>, LocalResolver
       private templateIndex: number|null, private templateName: string|null,
       private directiveMatcher: SelectorMatcher|null, private directives: Set<o.Expression>,
       private pipeTypeByName: Map<string, o.Expression>, private pipes: Set<o.Expression>,
-      private _namespace: o.ExternalReference, private relativeContextFilePath: string,
-      private i18nUseExternalIds: boolean) {
+      private _namespace: o.ExternalReference, relativeContextFilePath: string,
+      private i18nUseExternalIds: boolean, private _constants: o.Expression[] = []) {
     this._bindingScope = parentBindingScope.nestedScope(level);
 
     // Turn the relative context file path into an identifier by replacing non-alphanumeric
@@ -606,7 +606,7 @@ export class TemplateDefinitionBuilder implements t.Visitor<void>, LocalResolver
     // add attributes for directive and projection matching purposes
     attributes.push(...this.prepareNonRenderAttrs(
         allOtherInputs, element.outputs, stylingBuilder, [], i18nAttrs, ngProjectAsAttr));
-    parameters.push(this.toAttrsParam(attributes));
+    parameters.push(this.addConstants(attributes));
 
     // local refs (ex.: <div #foo #bar="baz">)
     parameters.push(this.prepareRefsParameter(element.references));
@@ -869,7 +869,7 @@ export class TemplateDefinitionBuilder implements t.Visitor<void>, LocalResolver
         (a: t.TextAttribute) => { attrsExprs.push(asLiteral(a.name), asLiteral(a.value)); });
     attrsExprs.push(...this.prepareNonRenderAttrs(
         template.inputs, template.outputs, undefined, template.templateAttrs));
-    parameters.push(this.toAttrsParam(attrsExprs));
+    parameters.push(this.addConstants(attrsExprs));
 
     // local refs (ex.: <ng-template #foo>)
     if (template.references && template.references.length) {
@@ -881,7 +881,8 @@ export class TemplateDefinitionBuilder implements t.Visitor<void>, LocalResolver
     const templateVisitor = new TemplateDefinitionBuilder(
         this.constantPool, this._bindingScope, this.level + 1, contextName, this.i18n,
         templateIndex, templateName, this.directiveMatcher, this.directives, this.pipeTypeByName,
-        this.pipes, this._namespace, this.fileBasedI18nSuffix, this.i18nUseExternalIds);
+        this.pipes, this._namespace, this.fileBasedI18nSuffix, this.i18nUseExternalIds,
+        this._constants);
 
     // Nested templates must not be visited until after their parent templates have completed
     // processing, so they are queued here until after the initial pass. Otherwise, we wouldn't
@@ -1019,6 +1020,8 @@ export class TemplateDefinitionBuilder implements t.Visitor<void>, LocalResolver
   getConstCount() { return this._dataIndex; }
 
   getVarCount() { return this._pureFunctionSlots; }
+
+  getConsts() { return this._constants; }
 
   getNgContentSelectors(): o.Expression|null {
     return this._ngContentReservedSlots.length ?
@@ -1291,10 +1294,21 @@ export class TemplateDefinitionBuilder implements t.Visitor<void>, LocalResolver
     return attrExprs;
   }
 
-  private toAttrsParam(attrsExprs: o.Expression[]): o.Expression {
-    return attrsExprs.length > 0 ?
-        this.constantPool.getConstLiteral(o.literalArr(attrsExprs), true) :
-        o.TYPED_NULL_EXPR;
+  private addConstants(constExprs: o.Expression[]): o.LiteralExpr {
+    if (constExprs.length > 0) {
+      const literal = o.literalArr(constExprs);
+
+      // Try to reuse a literal that's already in the array, if possible.
+      for (let i = 0; i < this._constants.length; i++) {
+        if (this._constants[i].isEquivalent(literal)) {
+          return o.literal(i);
+        }
+      }
+
+      return o.literal(this._constants.push(literal) - 1);
+    }
+
+    return o.TYPED_NULL_EXPR;
   }
 
   private prepareRefsParameter(references: t.Reference[]): o.Expression {
@@ -1358,16 +1372,19 @@ export class ValueConverter extends AstMemoryEfficientTransformer {
     const slotPseudoLocal = `PIPE:${slot}`;
     // Allocate one slot for the result plus one slot per pipe argument
     const pureFunctionSlot = this.allocatePureFunctionSlots(2 + pipe.args.length);
-    const target = new PropertyRead(pipe.span, new ImplicitReceiver(pipe.span), slotPseudoLocal);
+    const target = new PropertyRead(
+        pipe.span, pipe.sourceSpan, new ImplicitReceiver(pipe.span, pipe.sourceSpan),
+        slotPseudoLocal);
     const {identifier, isVarLength} = pipeBindingCallInfo(pipe.args);
     this.definePipe(pipe.name, slotPseudoLocal, slot, o.importExpr(identifier));
     const args: AST[] = [pipe.exp, ...pipe.args];
-    const convertedArgs: AST[] =
-        isVarLength ? this.visitAll([new LiteralArray(pipe.span, args)]) : this.visitAll(args);
+    const convertedArgs: AST[] = isVarLength ?
+        this.visitAll([new LiteralArray(pipe.span, pipe.sourceSpan, args)]) :
+        this.visitAll(args);
 
-    const pipeBindExpr = new FunctionCall(pipe.span, target, [
-      new LiteralPrimitive(pipe.span, slot),
-      new LiteralPrimitive(pipe.span, pureFunctionSlot),
+    const pipeBindExpr = new FunctionCall(pipe.span, pipe.sourceSpan, target, [
+      new LiteralPrimitive(pipe.span, pipe.sourceSpan, slot),
+      new LiteralPrimitive(pipe.span, pipe.sourceSpan, pureFunctionSlot),
       ...convertedArgs,
     ]);
     this._pipeBindExprs.push(pipeBindExpr);
@@ -1383,19 +1400,20 @@ export class ValueConverter extends AstMemoryEfficientTransformer {
   }
 
   visitLiteralArray(array: LiteralArray, context: any): AST {
-    return new BuiltinFunctionCall(array.span, this.visitAll(array.expressions), values => {
-      // If the literal has calculated (non-literal) elements transform it into
-      // calls to literal factories that compose the literal and will cache intermediate
-      // values. Otherwise, just return an literal array that contains the values.
-      const literal = o.literalArr(values);
-      return values.every(a => a.isConstant()) ?
-          this.constantPool.getConstLiteral(literal, true) :
-          getLiteralFactory(this.constantPool, literal, this.allocatePureFunctionSlots);
-    });
+    return new BuiltinFunctionCall(
+        array.span, array.sourceSpan, this.visitAll(array.expressions), values => {
+          // If the literal has calculated (non-literal) elements transform it into
+          // calls to literal factories that compose the literal and will cache intermediate
+          // values. Otherwise, just return an literal array that contains the values.
+          const literal = o.literalArr(values);
+          return values.every(a => a.isConstant()) ?
+              this.constantPool.getConstLiteral(literal, true) :
+              getLiteralFactory(this.constantPool, literal, this.allocatePureFunctionSlots);
+        });
   }
 
   visitLiteralMap(map: LiteralMap, context: any): AST {
-    return new BuiltinFunctionCall(map.span, this.visitAll(map.values), values => {
+    return new BuiltinFunctionCall(map.span, map.sourceSpan, this.visitAll(map.values), values => {
       // If the literal has calculated (non-literal) elements  transform it into
       // calls to literal factories that compose the literal and will cache intermediate
       // values. Otherwise, just return an literal array that contains the values.

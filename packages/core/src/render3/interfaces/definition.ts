@@ -9,6 +9,8 @@
 import {SchemaMetadata, ViewEncapsulation} from '../../core';
 import {ProcessProvidersFunction} from '../../di/interface/provider';
 import {Type} from '../../interface/type';
+
+import {TAttributes} from './node';
 import {CssSelectorList} from './projection';
 import {TView} from './view';
 
@@ -67,18 +69,18 @@ export const enum RenderFlags {
 }
 
 /**
- * A subclass of `Type` which has a static `ngComponentDef`:`ComponentDef` field making it
+ * A subclass of `Type` which has a static `ɵcmp`:`ComponentDef` field making it
  * consumable for rendering.
  */
-export interface ComponentType<T> extends Type<T> { ngComponentDef: never; }
+export interface ComponentType<T> extends Type<T> { ɵcmp: never; }
 
 /**
- * A subclass of `Type` which has a static `ngDirectiveDef`:`DirectiveDef` field making it
+ * A subclass of `Type` which has a static `ɵdir`:`DirectiveDef` field making it
  * consumable for rendering.
  */
 export interface DirectiveType<T> extends Type<T> {
-  ngDirectiveDef: never;
-  ngFactoryDef: () => T;
+  ɵdir: never;
+  ɵfac: () => T;
 }
 
 export enum DirectiveDefFlags {
@@ -86,10 +88,10 @@ export enum DirectiveDefFlags {
 }
 
 /**
- * A subclass of `Type` which has a static `ngPipeDef`:`PipeDef` field making it
+ * A subclass of `Type` which has a static `ɵpipe`:`PipeDef` field making it
  * consumable for rendering.
  */
-export interface PipeType<T> extends Type<T> { ngPipeDef: never; }
+export interface PipeType<T> extends Type<T> { ɵpipe: never; }
 
 /**
  * @codeGenApi
@@ -241,6 +243,9 @@ export interface ComponentDef<T> extends DirectiveDef<T> {
    */
   readonly template: ComponentTemplate<T>;
 
+  /** Constants associated with the component's view. */
+  readonly consts: TAttributes[]|null;
+
   /**
    * An array of `ngContent[selector]` values that were found in the template.
    */
@@ -258,7 +263,7 @@ export interface ComponentDef<T> extends DirectiveDef<T> {
    * can pre-fill the array and set the binding start index.
    */
   // TODO(kara): remove queries from this count
-  readonly consts: number;
+  readonly decls: number;
 
   /**
    * The number of bindings in this component template (including pure fn bindings).

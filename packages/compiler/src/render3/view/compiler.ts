@@ -240,11 +240,17 @@ export function compileComponentFromMetadata(
     definitionMap.set('ngContentSelectors', ngContentSelectors);
   }
 
-  // e.g. `consts: 2`
-  definitionMap.set('consts', o.literal(templateBuilder.getConstCount()));
+  // e.g. `decls: 2`
+  definitionMap.set('decls', o.literal(templateBuilder.getConstCount()));
 
   // e.g. `vars: 2`
   definitionMap.set('vars', o.literal(templateBuilder.getVarCount()));
+
+  // e.g. `consts: [['one', 'two'], ['three', 'four']]
+  const consts = templateBuilder.getConsts();
+  if (consts.length > 0) {
+    definitionMap.set('consts', o.literalArr(consts));
+  }
 
   definitionMap.set('template', templateFunctionExpression);
 
@@ -328,9 +334,8 @@ export function compileDirectiveFromRender2(
   const factoryRes = compileFactoryFromMetadata({...meta, injectFn: R3.directiveInject});
   const ngFactoryDefStatement = new o.ClassStmt(
       name, null,
-      [new o.ClassField(
-          'ngFactoryDef', o.INFERRED_TYPE, [o.StmtModifier.Static], factoryRes.factory)],
-      [], new o.ClassMethod(null, [], []), []);
+      [new o.ClassField('ɵfac', o.INFERRED_TYPE, [o.StmtModifier.Static], factoryRes.factory)], [],
+      new o.ClassMethod(null, [], []), []);
   const directiveDefStatement = new o.ClassStmt(
       name, null,
       [new o.ClassField(definitionField, o.INFERRED_TYPE, [o.StmtModifier.Static], res.expression)],
@@ -381,9 +386,8 @@ export function compileComponentFromRender2(
   const factoryRes = compileFactoryFromMetadata({...meta, injectFn: R3.directiveInject});
   const ngFactoryDefStatement = new o.ClassStmt(
       name, null,
-      [new o.ClassField(
-          'ngFactoryDef', o.INFERRED_TYPE, [o.StmtModifier.Static], factoryRes.factory)],
-      [], new o.ClassMethod(null, [], []), []);
+      [new o.ClassField('ɵfac', o.INFERRED_TYPE, [o.StmtModifier.Static], factoryRes.factory)], [],
+      new o.ClassMethod(null, [], []), []);
   const componentDefStatement = new o.ClassStmt(
       name, null,
       [new o.ClassField(definitionField, o.INFERRED_TYPE, [o.StmtModifier.Static], res.expression)],

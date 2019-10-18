@@ -49,7 +49,7 @@ class SomeComponent {
     function createModule(options: CreateModuleOptions): Type<any>;
     function createModule(providersOrOptions: any[] | CreateModuleOptions | undefined): Type<any> {
       let options: CreateModuleOptions = {};
-      if (providersOrOptions instanceof Array) {
+      if (Array.isArray(providersOrOptions)) {
         options = {providers: providersOrOptions};
       } else {
         options = providersOrOptions || {};
@@ -417,7 +417,7 @@ class SomeComponent {
       @Component({template: '<ng-container #vc></ng-container>'})
       class ContainerComp {
         // TODO(issue/24571): remove '!'.
-        @ViewChild('vc', {read: ViewContainerRef, static: false})
+        @ViewChild('vc', {read: ViewContainerRef})
         vc !: ViewContainerRef;
       }
 

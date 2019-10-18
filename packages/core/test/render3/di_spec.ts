@@ -28,8 +28,8 @@ describe('di', () => {
     class DirB {
       value = 'DirB';
 
-      static ngFactoryDef = () => new DirB();
-      static ngDirectiveDef =
+      static ɵfac = () => new DirB();
+      static ɵdir =
           ɵɵdefineDirective({selectors: [['', 'dirB', '']], type: DirB, inputs: {value: 'value'}});
     }
 
@@ -39,8 +39,8 @@ describe('di', () => {
         // TODO(issue/24571): remove '!'.
         value !: string;
 
-        static ngFactoryDef = () => new DirB();
-        static ngDirectiveDef =
+        static ɵfac = () => new DirB();
+        static ɵdir =
             ɵɵdefineDirective({type: DirB, selectors: [['', 'dirB', '']], inputs: {value: 'dirB'}});
       }
 
@@ -50,13 +50,13 @@ describe('di', () => {
         class DirA {
           constructor(@Optional() public dirB: DirB|null) {}
 
-          static ngFactoryDef =
+          static ɵfac =
               () => {
                 dirA = new DirA(ɵɵdirectiveInject(DirB, InjectFlags.Optional));
                 return dirA;
               }
 
-          static ngDirectiveDef = ɵɵdefineDirective({type: DirA, selectors: [['', 'dirA', '']]});
+          static ɵdir = ɵɵdefineDirective({type: DirA, selectors: [['', 'dirA', '']]});
         }
 
         beforeEach(() => dirA = null);
@@ -66,9 +66,9 @@ describe('di', () => {
           /** <div dirA></div> */
           const App = createComponent('app', function(rf: RenderFlags, ctx: any) {
             if (rf & RenderFlags.Create) {
-              ɵɵelement(0, 'div', ['dirA', '']);
+              ɵɵelement(0, 'div', 0);
             }
-          }, 1, 0, [DirA, DirB]);
+          }, 1, 0, [DirA, DirB], [], undefined, [], [], undefined, [['dirA', '']]);
 
           expect(() => { new ComponentFixture(App); }).not.toThrow();
           expect(dirA !.dirB).toEqual(null);
@@ -81,8 +81,8 @@ describe('di', () => {
         class DirA {
           constructor(@Self() public dirB: DirB) {}
 
-          static ngFactoryDef = () => dirA = new DirA(ɵɵdirectiveInject(DirB, InjectFlags.Self));
-          static ngDirectiveDef = ɵɵdefineDirective({type: DirA, selectors: [['', 'dirA', '']]});
+          static ɵfac = () => dirA = new DirA(ɵɵdirectiveInject(DirB, InjectFlags.Self));
+          static ɵdir = ɵɵdefineDirective({type: DirA, selectors: [['', 'dirA', '']]});
         }
 
         const DirC = createDirective('dirC');
@@ -92,13 +92,17 @@ describe('di', () => {
          *   <div dirA dirC></div>
          * </div>
          */
-        const App = createComponent('app', function(rf: RenderFlags, ctx: any) {
-          if (rf & RenderFlags.Create) {
-            ɵɵelementStart(0, 'div', ['dirB', '']);
-            ɵɵelement(1, 'div', ['dirA', '', 'dirC', '']);
-            ɵɵelementEnd();
-          }
-        }, 2, 0, [DirA, DirB, DirC]);
+        const App = createComponent(
+            'app',
+            function(rf: RenderFlags, ctx: any) {
+              if (rf & RenderFlags.Create) {
+                ɵɵelementStart(0, 'div', 0);
+                ɵɵelement(1, 'div', 1);
+                ɵɵelementEnd();
+              }
+            },
+            2, 0, [DirA, DirB, DirC], [], undefined, [], [], undefined,
+            [['dirB', ''], ['dirA', '', 'dirC', '']]);
 
         expect(() => {
           (DirA as any)['__NG_ELEMENT_ID__'] = 1;
@@ -113,11 +117,11 @@ describe('di', () => {
     class MyComp {
       constructor(public renderer: Renderer2) {}
 
-      static ngFactoryDef = () => new MyComp(ɵɵdirectiveInject(Renderer2 as any));
-      static ngComponentDef = ɵɵdefineComponent({
+      static ɵfac = () => new MyComp(ɵɵdirectiveInject(Renderer2 as any));
+      static ɵcmp = ɵɵdefineComponent({
         type: MyComp,
         selectors: [['my-comp']],
-        consts: 1,
+        decls: 1,
         vars: 0,
         template: function(rf: RenderFlags, ctx: MyComp) {
           if (rf & RenderFlags.Create) {
@@ -219,8 +223,8 @@ describe('di', () => {
   describe('getOrCreateNodeInjector', () => {
     it('should handle initial undefined state', () => {
       const contentView = createLView(
-          null, createTView(-1, null, 1, 0, null, null, null, null), null, LViewFlags.CheckAlways,
-          null, null, {} as any, {} as any);
+          null, createTView(-1, null, 1, 0, null, null, null, null, null), null,
+          LViewFlags.CheckAlways, null, null, {} as any, {} as any);
       const oldView = selectView(contentView, null);
       try {
         const parentTNode =

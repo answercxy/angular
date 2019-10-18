@@ -24,8 +24,8 @@ import {ReferencesRegistry} from './references_registry';
 import {combineResolvers, findAngularDecorator, forwardRefResolver, getValidConstructorDependencies, isExpressionForwardReference, toR3Reference, unwrapExpression} from './util';
 
 export interface NgModuleAnalysis {
-  ngModuleDef: R3NgModuleMetadata;
-  ngInjectorDef: R3InjectorMetadata;
+  mod: R3NgModuleMetadata;
+  inj: R3InjectorMetadata;
   metadataStmt: Statement|null;
   declarations: Reference<ClassDeclaration>[];
   exports: Reference<ClassDeclaration>[];
@@ -236,8 +236,8 @@ export class NgModuleDecoratorHandler implements DecoratorHandler<NgModuleAnalys
     return {
       analysis: {
         id,
-        ngModuleDef,
-        ngInjectorDef,
+        mod: ngModuleDef,
+        inj: ngInjectorDef,
         declarations: declarationRefs,
         exports: exportRefs,
         metadataStmt: generateSetClassMetadataCall(
@@ -257,7 +257,7 @@ export class NgModuleDecoratorHandler implements DecoratorHandler<NgModuleAnalys
       const context = getSourceFile(node);
       for (const exportRef of analysis.exports) {
         if (isNgModule(exportRef.node, scope.compilation)) {
-          analysis.ngInjectorDef.imports.push(this.refEmitter.emit(exportRef, context));
+          analysis.inj.imports.push(this.refEmitter.emit(exportRef, context));
         }
       }
 
@@ -281,8 +281,8 @@ export class NgModuleDecoratorHandler implements DecoratorHandler<NgModuleAnalys
   }
 
   compile(node: ClassDeclaration, analysis: NgModuleAnalysis): CompileResult[] {
-    const ngInjectorDef = compileInjector(analysis.ngInjectorDef);
-    const ngModuleDef = compileNgModule(analysis.ngModuleDef);
+    const ngInjectorDef = compileInjector(analysis.inj);
+    const ngModuleDef = compileNgModule(analysis.mod);
     const ngModuleStatements = ngModuleDef.additionalStatements;
     if (analysis.metadataStmt !== null) {
       ngModuleStatements.push(analysis.metadataStmt);
@@ -309,13 +309,13 @@ export class NgModuleDecoratorHandler implements DecoratorHandler<NgModuleAnalys
     }
     const res: CompileResult[] = [
       {
-        name: 'ngModuleDef',
+        name: 'ɵmod',
         initializer: ngModuleDef.expression,
         statements: ngModuleStatements,
         type: ngModuleDef.type,
       },
       {
-        name: 'ngInjectorDef',
+        name: 'ɵinj',
         initializer: ngInjectorDef.expression,
         statements: ngInjectorDef.statements,
         type: ngInjectorDef.type,
@@ -324,7 +324,7 @@ export class NgModuleDecoratorHandler implements DecoratorHandler<NgModuleAnalys
 
     if (this.localeId) {
       res.push({
-        name: 'ngLocaleIdDef',
+        name: 'ɵloc',
         initializer: new LiteralExpr(this.localeId),
         statements: [],
         type: STRING_TYPE
